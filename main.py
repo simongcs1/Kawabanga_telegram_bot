@@ -50,38 +50,37 @@ prices = types.InlineKeyboardButton("Цены на обучение", callback_d
 
 inst = types.InlineKeyboardButton("Наш Instagram", url='https://instagram.com/kawabanga_ufa')
 vk = types.InlineKeyboardButton("Наш VK", url='https://vk.com/kawabangaschool')
-
-
+###start###
+inline_keyboard_start = types.InlineKeyboardMarkup(row_width=1)
+inline_keyboard_start.add(time_table, private_training, prices)
+###Групповые
+time_markup = types.InlineKeyboardMarkup()
+admin_markup = types.InlineKeyboardMarkup()
+time_markup.add(prices, kwb_chat)
+admin_markup.add(call_to_admin)
+###ЦЕНЫ
+inline_keyboard_prices = types.InlineKeyboardMarkup(row_width=1)
+inline_keyboard_prices.add(call_to_admin, time_table, private_training)
+###Места катаний
+#inline_keyboard_spots = types.InlineKeyboardMarkup(row_width=1)
+#inline_keyboard_spots.add(arena, biathlon, rollerdrome)
 
 ### НАЧАЛЬНЫЙ БЛОК С ОСНОВНОЙ ИНФОРМАЦИЕЙ###
 @bot.message_handler(commands=['start'])
 def start(message):
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-    keyboard.add(booking, call_to_admin)
-
-    inline_keyboard = types.InlineKeyboardMarkup(row_width=1)
-    prices = types.InlineKeyboardButton("Цены на обучение", callback_data='Цены на обучение')
-    time_table = types.InlineKeyboardButton("Расписание групповых занятий",
-                                            callback_data='Расписание групповых занятий')
-
-    private_training = types.InlineKeyboardButton("Записаться на индивидуальное занятие",
-                                                  callback_data='Индивидуальные занятия')
-
-    inline_keyboard.add(time_table, private_training, prices)
+    # keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    # keyboard.add(booking, call_to_admin)
 
     greatings = f'Привет <b>{message.from_user.first_name}</b>!👋\n\nМы экстрим школа для взрослых и детей <b>Kawabanga!</b>🤙' \
                 f'\n\n<b>Зимой</b> обучаем катанию на сноуборде и горных лыжах!\n🏂⛷\n<b>Летом</b> на лонгборде/скейте и роликах!\n🛹🛼' \
                 f'\n\nВыбери какой вопрос тебя интересует или напишите в сообщении?👇'
-    bot.send_message(message.chat.id, greatings, parse_mode='html', reply_markup=inline_keyboard)
+
+    bot.send_message(message.chat.id, greatings, parse_mode='html', reply_markup=inline_keyboard_start)
 
 ###РАСПИСАНИЕ ГРУППОВЫХ ЗАНЯТИЙ###
 @bot.callback_query_handler(func=lambda call: call.data =='Расписание групповых занятий')
 def group_training(call: types.CallbackQuery):
-    time_markup = types.InlineKeyboardMarkup()
-    admin_markup = types.InlineKeyboardMarkup()
 
-    time_markup.add(prices, kwb_chat)
-    admin_markup.add(call_to_admin)
     bot.send_message(call.message.chat.id, time, reply_markup=admin_markup, parse_mode='html')
     bot.send_message(call.message.chat.id, weather, parse_mode='html', reply_markup=time_markup)
     bot.answer_callback_query(call.id)
@@ -96,19 +95,18 @@ def private_training(call: types.CallbackQuery):
     bot.send_message(call.message.chat.id, client_parameters, parse_mode='html')
     bot.answer_callback_query(call.id)
 
-# @bot.callback_query_handler(func=lambda call: call.data == 'Места для катания')
-# def spots():
-#     inline_keyboard = types.InlineKeyboardMarkup(row_width=1)
+# @bot.callback_query_handler(func=lambda call: call.data == 'Места катания')
+#     def spots():
+#         inline_keyboard = types.InlineKeyboardMarkup(row_width=1)
 #
-#     bot.send_message(call.message.chat.id, price_list, reply_markup=inline_keyboard, parse_mode='html')
-#     bot.answer_callback_query(call.id)
+#        bot.send_message(call.message.chat.id, price_list, reply_markup=inline_keyboard, parse_mode='html')
+#        bot.answer_callback_query(call.id)
 
 ###ЦЕНЫ НА ОБУЧЕНИЕ###
 @bot.callback_query_handler(func=lambda call: call.data =='Цены на обучение')
 def prices(call: types.CallbackQuery):
-    inline_keyboard = types.InlineKeyboardMarkup(row_width=1)
-    inline_keyboard.add(call_to_admin, time_table, private_training)
-    bot.send_message(call.message.chat.id, price_list, reply_markup=inline_keyboard, parse_mode='html')
+
+    bot.send_message(call.message.chat.id, price_list, reply_markup=inline_keyboard_prices, parse_mode='html')
     bot.answer_callback_query(call.id)
 
 ###КОМАНДА С ССЫЛКАМИ НА СОЦ.СЕТИ###
@@ -123,30 +121,33 @@ def social(message):
 @bot.message_handler(content_types=['text'])
 def get_user_text(message):
     markup = types.InlineKeyboardMarkup()
-
-    for j in message.text.lower().split():
+    answer_flag = False
+    clean_words=''.join([c if c.isalpha() else ' ' for c in message.text.lower()])
+    for j in clean_words.split():
 
         if j in ['привет', 'hi', 'hello', 'хай', 'здарова', 'здравствуйте', "приветствую", "алоха"]:
             bot.send_sticker(message.chat.id,
                              sticker='CAACAgIAAxkBAAEFB4lip3bfDkujNcA1mRCQ6ivA6S9VKgAC_wIAAm2wQgMEoDmrNAI2NyQE')
             bot.send_message(message.chat.id, "И тебе привет!")
+            answer_flag = True
 
         if j in ["цены", "стоимость", "стоит", "цена", "прайс", "price", "cost", "лист", "прайслист"]:
-            inline_keyboard = types.InlineKeyboardMarkup(row_width=1)
-            inline_keyboard.add(call_to_admin, time_table, private_training)
-            bot.send_message(message.chat.id, price_list, reply_markup=inline_keyboard, parse_mode='html')
 
-
+            bot.send_message(message.chat.id, price_list, reply_markup=inline_keyboard_prices, parse_mode='html')
+            answer_flag = True
+            break
         elif j in ['лет', "возраст", "возраста", "возрасте"]:
             markup.add(call_to_admin)
             bot.send_message(message.chat.id, 'Обычно с <b>4 лет</b> до "бесконечности"😁\n\nСамому старшему ученику в нашей школе <b>66 лет</b>!!!'
                                               '\n\nВсе зависит от индивидуальных особенностей ученика!\n\n'
                                               'Всю подобную информацию Вы можете узнать у администратора через<u>👇️ Telegram 👇</u>\n'
                                               'Или позвонив по телефону +7-927-233-92-85 ️', reply_markup=markup, parse_mode='html')
-
+            answer_flag = True
+            break
         elif j in ['website', 'веб', 'сайт', 'site', 'web', 'вебсайт', "интернет", "страница"]:
             markup.add(kwb_site)
             bot.send_message(message.chat.id, '⬇️ Интернет страничка школы! ⬇', reply_markup=markup)
+            answer_flag = True
             break
 
         elif j in ['канал', 'channel', 'chanel', 'telegram', 'чат', 'chat']:
@@ -154,12 +155,14 @@ def get_user_text(message):
             bot.send_message(message.chat.id,
                          f'Присоединяйтесь к Telegram каналу школы, что бы не пропустить групповые занятия! 👇️',
                          reply_markup=markup)
+            answer_flag = True
             break
 
         elif j in ['запись', 'занятие', 'записаться', 'записатся', 'booking', 'book', "записаться", "запишите"]:
 
             markup.add(call_to_admin)
             bot.send_message(message.chat.id, '⬇ Запись на занятие! ⬇', reply_markup=markup)
+            answer_flag = True
             break
 
         elif j in ['связь', 'звонок', 'контакт', 'контакты', "позвоните", "позвонить"]:
@@ -167,28 +170,33 @@ def get_user_text(message):
             markup.add(text_via_tg, call_order)
             bot.send_message(message.chat.id, '📞 Вы можете выбрать удобный для Вас способ связи! 📞'
                                           '\n\nПозвонить по телефону +7-927-233-92-85!\nили 👇', reply_markup=markup)
+            answer_flag = True
             break
 
         elif j in ['kawabanga', 'kowabunga', 'kavabanga', 'kowabanga', 'кавабанга', "ковабанга"]:
             bot.send_sticker(message.chat.id,
                               sticker='CAACAgIAAxkBAAEFCl9iqLY5HLy2wj1RbU409laJiphfjgACmQADwu9cBZJvaP6daeplJAQ')
             bot.send_message(message.chat.id, 'А вы знали, что "Kowabunga" означать возглас восхищения у серферов?!')
+            answer_flag = True
+            break
 
 
         elif j in ['анекдот', 'joke', 'шутка', 'шутку']:
             bot.send_message(message.chat.id, "Лови!")
             bot.send_message(message.chat.id, joke_parcer())
+            answer_flag = True
             break
 
         elif j in ['блять', 'сука', 'бля', 'блядь', 'гондон', 'ебать', 'выебу', 'ебланы', "еблан", 'пиздец', "шлюха", "пизда"]:
             bot.send_sticker(message.chat.id,
                          sticker='CAACAgQAAxkBAAEFB1pip2GCimih4eNlJPlS8PzsNqicSgACRgEAAqqvuQFIh89RP1b99CQE')
             bot.send_message(message.chat.id, "Ай, ай, ай... Нехорошо материться!")
+            answer_flag = True
             break
 
-    # else:
-    #     bot.send_sticker(message.chat.id, sticker='CAACAgIAAxkBAAEFB1Rip2BUbaDd6NK6lZEEY0WlNJbnzwACugADwPsIAAGSbw-9i6NJSyQE')
-    #     bot.send_message(message.chat.id, "Я тебя не понимаю")
+    if not answer_flag:
+         bot.send_sticker(message.chat.id, sticker='CAACAgIAAxkBAAEFB1Rip2BUbaDd6NK6lZEEY0WlNJbnzwACugADwPsIAAGSbw-9i6NJSyQE')
+         bot.send_message(message.chat.id, "Я тебя не понимаю")
 
 
 #
