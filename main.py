@@ -1,8 +1,10 @@
 import telebot
 import requests
+import datetime
 from telebot import types
 from bs4 import BeautifulSoup as bs
 from random import choice
+
 
 ###ФУНКЦИЯ ВЫДАЕТ СЛУЧАЙНЫЙ АНЕКДОТ###
 def joke_parcer():
@@ -14,7 +16,7 @@ def joke_parcer():
 
 bot = telebot.TeleBot('5538413542:AAFBTI5ibHPSPuKQw-yssbdC_Jp8w8EagHg') #API token from BotFather
 
-###ВСЕ КОНСТАНТЫ###     #KWB - это сокращение kawabanga
+'''*******************************КОНСТАНТЫ************************************************'''
 call_to_admin = types.InlineKeyboardButton("📞 Связь с администратором! 📞", url='https://t.me/kawabangaschool')
 text_via_tg = types.InlineKeyboardButton("Написать в Telegram", url='https://t.me/kawabangaschool')
 call_order = types.InlineKeyboardButton("Заказать звонок", url='https://t.me/simon_lbu')
@@ -62,10 +64,10 @@ admin_markup.add(call_to_admin)
 inline_keyboard_prices = types.InlineKeyboardMarkup(row_width=1)
 inline_keyboard_prices.add(call_to_admin, time_table, private_training)
 ###Места катаний
-#inline_keyboard_spots = types.InlineKeyboardMarkup(row_width=1)
-#inline_keyboard_spots.add(arena, biathlon, rollerdrome)
+# inline_keyboard_spots = types.InlineKeyboardMarkup(row_width=1)
+# inline_keyboard_spots.add(arena, biathlon, rollerdrome)
 
-### НАЧАЛЬНЫЙ БЛОК С ОСНОВНОЙ ИНФОРМАЦИЕЙ###
+'''*******************************КЛИЕНТСКИЙ БЛОК************************************************'''
 @bot.message_handler(commands=['start'])
 def start(message):
     # keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
@@ -87,20 +89,82 @@ def group_training(call: types.CallbackQuery):
 
 ###ИНДИВИДУАЛЬНЕ ЗАНЯТИЯ(еще не готов)###
 @bot.callback_query_handler(func=lambda call: call.data =='Индивидуальные занятия')
-def private_training(call: types.CallbackQuery):
-    markup = types.InlineKeyboardMarkup()
-    client_parameters = f'Укажите пожалуйста возраст ученика!'
 
-    markup.add(kwb_chat)
-    bot.send_message(call.message.chat.id, client_parameters, parse_mode='html')
-    bot.answer_callback_query(call.id)
 
+#def private_training(call: types.CallbackQuery):
+    # markup = types.InlineKeyboardMarkup()
+    # client_age = f'Укажите пожалуйста возраст ученика!'
+    #
+    # markup.add(kwb_chat)
+    # bot.send_message(call.message.chat.id, client_age, parse_mode='html')
+    # bot.answer_callback_query(call.id)
+
+###МЕСТА КАТАНИЙ
+@bot.message_handler(commands=['spot'])
+def spots_info_menu(a):
+    spots_mainmenu = types.InlineKeyboardMarkup()
+    arena_button = types.InlineKeyboardButton(text='"Уфа Арена"', callback_data='arena_button')
+    biathlon_button = types.InlineKeyboardButton(text='Биатлон', callback_data='biathlon_button')
+    rollerdrom_button = types.InlineKeyboardButton(text='Роллердром', callback_data='rollerdrom_button')
+    spots_mainmenu.add(arena_button, biathlon_button, rollerdrom_button)
+    bot.send_message(a.chat.id, f'👇 Наши места катания!👇', reply_markup=spots_mainmenu)
+
+@bot.callback_query_handler(func=lambda call: True)
+def spots_info(call):
+    # if call.data == "spots_mainmenu":
+    #     spots_mainmenu = types.InlineKeyboardMarkup()
+    #     arena_button = types.InlineKeyboardButton(text='"Уфа Арена"', callback_data='arena_button')
+    #     biathlon_button = types.InlineKeyboardButton(text='Биатлон', callback_data='biathlon_button')
+    #     rollerdrom_button = types.InlineKeyboardButton(text='Роллердром', callback_data='rollerdrom_button')
+    #     spots_mainmenu.add(arena_button, biathlon_button, rollerdrom_button)
+    #     bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=spots_mainmenu)
+    if call.data == "arena_button":
+        next_menu = types.InlineKeyboardMarkup()
+        biathlon_button = types.InlineKeyboardButton(text='Биатлон', callback_data='biathlon_button')
+        rollerdrom_button = types.InlineKeyboardButton(text='Роллердром', callback_data='rollerdrom_button')
+        next_menu.add(biathlon_button, rollerdrom_button)
+        arena_adress = "<a href='https://yandex.ru/maps/172/ufa/?indoorLevel=1&ll=" \
+                       "55.956763%2C54.738658&mode=routes&rtext=~54.738983%2C55.955658&rtt=auto&ruri=~&z=17.4'><u>Ленина 114</u></a>"
+
+        arena_photo = "<a href='https://sun9-66.userapi.com/impf/bw5Q9Y475rmwqSnpW51TDBbN9J9WO30Unu2BgQ/" \
+                      "6MHLkwtpTxc.jpg?size=1280x847&quality=95&sign=8dc4d2e5cc5a326c886c8b57a27a5661&type=album'> </a>"
+
+        bot.edit_message_text(f'<b>"Уфа Арена"</b> {arena_photo}\n\nРовный асфальт и умеренный уклон!'
+                               f'\n\nПрекрасное место для новичков и любителей денсинга!\n\n{arena_adress} 👈 Смотреть на карте!\nТочка сбора за лабораторией <b>"Лорак"</b> ✌️',
+                               call.message.chat.id, call.message.message_id,
+                               reply_markup=next_menu, parse_mode='HTML')
+    elif call.data == "biathlon_button":
+        next_menu2 = types.InlineKeyboardMarkup()
+        arena_button = types.InlineKeyboardButton(text='"Уфа Арена"', callback_data='arena_button')
+        rollerdrom_button = types.InlineKeyboardButton(text='Роллердром', callback_data='rollerdrom_button')
+        next_menu2.add(arena_button, rollerdrom_button)
+        biathlon_photo = "<a href='https://sun9-29.userapi.com/impf/o8gTO1dvo1kGcSxh6QJC6tMP9Hq3mfovl-cSKw/" \
+                         "-cP5znS1aBI.jpg?size=1280x853&quality=95&sign=965acd57ece5865dadc96a54baf1c03b&type=album'> </a>"
+        biathlon_adress = "<a href='https://yandex.ru/maps/172/ufa/?ll=56.039473%2C54.803905&mode=routes&rtext=~54.805432%2C56.036132&rtt=auto&ruri=~&z=15.53'><u>Комарова 1</u></a>"
+
+        bot.edit_message_text(f'<b>"Биатлон"</b>{biathlon_photo}\n\nМы любим "Биатлон" за его универсальность!\n\n'
+                              f'Идеальный асфальт и уклон <b>"на любой вкус"</b>\nОтлично подходит для <b>скоростного спуска(Downhill)</b>\n\n{biathlon_adress} 👈 '
+                              f'Смотреть на карте!\nТочка сбора парковке перед комплексом <b>"Биатлон"</b> ✌', call.message.chat.id, call.message.message_id,
+                              reply_markup=next_menu2, parse_mode='HTML')
+
+    elif call.data == "rollerdrom_button":
+        next_menu3 = types.InlineKeyboardMarkup()
+        arena_button = types.InlineKeyboardButton(text='"Уфа Арена"', callback_data='arena_button')
+        biathlon_button = types.InlineKeyboardButton(text='Биатлон', callback_data='biathlon_button')
+        rollerdrom_adress = "<a href='https://yandex.ru/maps/172/ufa/?indoorLevel=1&ll=55.984471%2C54.717286&" \
+                            "mode=routes&rtext=~54.717276%2C55.984338&rtt=auto&ruri=~ymapsbm1%3A%2F%2Forg%3Foid%3D1903275297&z=17.38'>Бакалинская 27</a>"
+        rollerdrom_photo = "<a href='https://sun9-9.userapi.com/impf/Vtn2dpLEW1yzOIqT1zcq0meDbQ36UEXInEe_Gw/tWMwxRjbosQ.jpg?size=1280x719&quality=95&sign=d39e7e8dbf49ef632207187656e39f60&type=album'> </a>"
+        next_menu3.add(arena_button, biathlon_button)
+        bot.edit_message_text(f'<b>"Роллердром"</b>{rollerdrom_photo}\n\nНа "Роллердроме" всегда отличная погода!\n\n'
+                              f'Бетонное покрытие, тепло зимой и свежо летом!\nОтлично подходит для новичков, лучшее место для старта!\n\n{rollerdrom_adress} 👈 '
+                              f'Смотреть на карте!\nТЦ Ультра, 2 этаж, левое крыло ✌', call.message.chat.id, call.message.message_id,
+                              reply_markup=next_menu3, parse_mode='HTML')
 # @bot.callback_query_handler(func=lambda call: call.data == 'Места катания')
-#     def spots():
-#         inline_keyboard = types.InlineKeyboardMarkup(row_width=1)
+# def spots(call: types.CallbackQuery):
 #
-#        bot.send_message(call.message.chat.id, price_list, reply_markup=inline_keyboard, parse_mode='html')
-#        bot.answer_callback_query(call.id)
+#
+#     bot.send_message(call.message.chat.id, price_list, reply_markup=inline_keyboard_spots, parse_mode='html')
+#     bot.answer_callback_query(call.id)
 
 ###ЦЕНЫ НА ОБУЧЕНИЕ###
 @bot.callback_query_handler(func=lambda call: call.data =='Цены на обучение')
@@ -116,6 +180,8 @@ def social(message):
     inline_social.add(inst, vk, kwb_chat)
     bot.send_message(message.chat.id, f'<b>Наши социальные сети</b> 👇\n\nПодписывайтесь и рассказывайте друзьям!🤙'
                      , parse_mode='html', reply_markup=inline_social)
+
+
 
 ###ФУНКЦИЯ НИЖЕ ОБРАБАТЫВАЕТ ЛЮБЫЕ ТЕКСТОВЫЕ СООБЩЕНИЯ###
 @bot.message_handler(content_types=['text'])
@@ -219,6 +285,13 @@ def get_user_text(message):
 #     booking = types.KeyboardButton('Запись на занятие')
 #     markup.add(website, kwb_chat, booking)
 #     bot.send_message(message.chat.id, 'Выберете категорию', reply_markup=markup)
-
+#
+# def get_calendar(message):
+#     now = datetime.datetime.now()  # Текущая дата
+#     chat_id = message.chat.id
+#     date = (now.year, now.month)
+#     current_shown_dates[chat_id] = date  # Сохраним текущую дату в словарь
+#     markup = create_calendar(now.year, now.month)
+#     bot.send_message(message.chat.id, "Выберите дату для занятий!", reply_markup=markup)
 
 bot.polling(none_stop=True)
